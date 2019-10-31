@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,7 +14,7 @@ namespace TechnicalTestProject.Controllers
     public class CalculatorController : ApiController
     {
         private readonly CalculatorDbEntities db = new CalculatorDbEntities();
-
+        Logger Logger = LogManager.GetCurrentClassLogger();
         // Add 
         [HttpGet]
         [Route("api/calculator/add")]
@@ -21,6 +22,7 @@ namespace TechnicalTestProject.Controllers
         {
             if (!ModelState.IsValid)
             {
+                Logger.Error(BadRequest());
                 return BadRequest();
             }
 
@@ -29,15 +31,24 @@ namespace TechnicalTestProject.Controllers
                 Insert_date = DateTime.Now
             };
             db.Calls.Add(call);
-            db.SaveChanges();
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
 
-
+                Logger.Error(e);
+            }
+           
             CallSteps step = new CallSteps()
             {
                 ParentId = call.Id,
                 Insert_date = DateTime.Now,
                 Value = DateTime.Now.ToString("dd.MM HH:mm:ss") + " - Call " + call.Id + ". Request to JSON"
             };
+
+            Logger.Info(step.Value);
 
             db.CallSteps.Add(step);
 
@@ -46,17 +57,26 @@ namespace TechnicalTestProject.Controllers
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - Call " + call.Id + ". Request to SOAP";
             db.CallSteps.Add(step);
+            Logger.Info(step.Value);
+            int res = 0;
 
             CalculatorSoapClient calc = new CalculatorSoapClient();
 
             step = new CallSteps();
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
-            step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - Call " + call.Id + ". Response from SOAP";
+            step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - Call Id : " + call.Id + ". Response from SOAP";
             db.CallSteps.Add(step);
-            int res = calc.Add(intA, intB);
-
-            db.SaveChanges();
+            Logger.Info(step.Value);
+            try
+            {
+                res = calc.Add(intA, intB);
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+            }
 
             return Json(res);
         }
@@ -68,6 +88,7 @@ namespace TechnicalTestProject.Controllers
         {
             if (!ModelState.IsValid)
             {
+                Logger.Error(BadRequest());
                 return BadRequest();
             }
 
@@ -76,8 +97,14 @@ namespace TechnicalTestProject.Controllers
                 Insert_date = DateTime.Now
             };
             db.Calls.Add(call);
+            try
+            {
             db.SaveChanges();
-
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
 
             CallSteps step = new CallSteps()
             {
@@ -85,26 +112,36 @@ namespace TechnicalTestProject.Controllers
                 Insert_date = DateTime.Now,
                 Value = DateTime.Now.ToString("dd.MM HH:mm:ss") + " - CallDivide " + call.Id + ". Request to JSON"
             };
-
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
 
             step = new CallSteps();
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - CallDivide " + call.Id + ". Request to SOAP";
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
 
             CalculatorSoapClient calc = new CalculatorSoapClient();
-
             step = new CallSteps();
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - CallDivide " + call.Id + ". Response from SOAP";
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
-            double res = calc.Divide(intA, intB);
+            double res = 0;
+            try
+            {
+                res = calc.Divide(intA, intB);
 
-            db.SaveChanges();
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
 
+                Logger.Error(e);
+            }
+          
             return Json(res);
         }
 
@@ -115,6 +152,7 @@ namespace TechnicalTestProject.Controllers
         {
             if (!ModelState.IsValid)
             {
+                Logger.Error(BadRequest());
                 return BadRequest();
             }
 
@@ -123,22 +161,29 @@ namespace TechnicalTestProject.Controllers
                 Insert_date = DateTime.Now
             };
             db.Calls.Add(call);
-            db.SaveChanges();
-
-
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
+            
             CallSteps step = new CallSteps()
             {
                 ParentId = call.Id,
                 Insert_date = DateTime.Now,
                 Value = DateTime.Now.ToString("dd.MM HH:mm:ss") + " - CallMultiply " + call.Id + ". Request to JSON"
             };
-
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
 
             step = new CallSteps();
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - CallMultiply " + call.Id + ". Request to SOAP";
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
 
             CalculatorSoapClient calc = new CalculatorSoapClient();
@@ -147,10 +192,20 @@ namespace TechnicalTestProject.Controllers
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - CallMultiply " + call.Id + ". Response from SOAP";
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
-            double res = calc.Multiply(intA, intB);
+            double res = 0;
+            try
+            {
+                res = calc.Multiply(intA, intB);
 
-            db.SaveChanges();
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
+            
 
             return Json(res);
         }
@@ -162,6 +217,7 @@ namespace TechnicalTestProject.Controllers
         {
             if (!ModelState.IsValid)
             {
+                Logger.Error(BadRequest());
                 return BadRequest();
             }
 
@@ -170,8 +226,14 @@ namespace TechnicalTestProject.Controllers
                 Insert_date = DateTime.Now
             };
             db.Calls.Add(call);
-            db.SaveChanges();
-
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
 
             CallSteps step = new CallSteps()
             {
@@ -179,13 +241,14 @@ namespace TechnicalTestProject.Controllers
                 Insert_date = DateTime.Now,
                 Value = DateTime.Now.ToString("dd.MM HH:mm:ss") + " - CallSubtract " + call.Id + ". Request to JSON"
             };
-
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
 
             step = new CallSteps();
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - CallSubtract " + call.Id + ". Request to SOAP";
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
 
             CalculatorSoapClient calc = new CalculatorSoapClient();
@@ -194,11 +257,18 @@ namespace TechnicalTestProject.Controllers
             step.ParentId = call.Id;
             step.Insert_date = DateTime.Now;
             step.Value = step.Insert_date.ToString("dd.MM HH:mm:ss") + " - CallSubtract " + call.Id + ". Response from SOAP";
+            Logger.Info(step.Value);
             db.CallSteps.Add(step);
-            double res = calc.Subtract(intA, intB);
-
-            db.SaveChanges();
-
+            double res = 0;
+            try
+            {
+                res = calc.Subtract(intA, intB);
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
             return Json(res);
         }
 
